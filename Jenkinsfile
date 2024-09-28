@@ -17,7 +17,7 @@ pipeline {
                     sh """
                         curl -fsSLO https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_CLI_VERSION}.tgz
                         tar xzvf docker-${DOCKER_CLI_VERSION}.tgz
-                        sudo mv docker/docker /usr/local/bin
+                        mv docker/docker /usr/local/bin
                         rm -r docker docker-${DOCKER_CLI_VERSION}.tgz
                         docker --version
                     """
