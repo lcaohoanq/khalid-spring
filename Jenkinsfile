@@ -1,24 +1,30 @@
 pipeline {
-
     agent any
 
     tools { 
         maven 'my-maven' 
     }
+    
     environment {
         MYSQL_ROOT_LOGIN = credentials('mysql-root-login')
+        DOCKER_CLI_VERSION = '17.04.0-ce'
     }
+    
     stages {
-        
-        stage('Initialize'){
+        stage('Install Docker CLI') {
             steps {
                 script {
-                    def dockerHome = tool 'myDocker'
-                    env.PATH = "${dockerHome}/bin:${env.PATH}"
+                    sh """
+                        curl -fsSLO https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_CLI_VERSION}.tgz
+                        tar xzvf docker-${DOCKER_CLI_VERSION}.tgz
+                        sudo mv docker/docker /usr/local/bin
+                        rm -r docker docker-${DOCKER_CLI_VERSION}.tgz
+                        docker --version
+                    """
                 }
-            }    
+            }
         }
-
+        
         stage('Deploy MySQL to DEV') {
             steps {
                 echo 'Deploying and cleaning'
@@ -62,10 +68,9 @@ pipeline {
                 sh 'docker container run -d --rm --name lcaohoanq-springboot -p 8081:8080 --network dev lcaohoanq/springboot'
             }
         }
- 
     }
+    
     post {
-        // Clean after build
         always {
             cleanWs()
         }
