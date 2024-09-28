@@ -9,6 +9,13 @@ pipeline {
         MYSQL_ROOT_LOGIN = credentials('mysql-root-login')
     }
     stages {
+        
+        stage('Initialize'){
+            steps {
+                def dockerHome = tool 'myDocker'
+                env.PATH = "${dockerHome}/bin:${env.PATH}"
+            }    
+        }
 
         stage('Deploy MySQL to DEV') {
             steps {
