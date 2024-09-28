@@ -1,21 +1,22 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.8.4-openjdk-11-slim'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
 
     environment {
         MYSQL_ROOT_LOGIN = credentials('mysql-root-login')
     }
     
     stages {
-        stage('Verify Tools') {
+        stage('Build and Test') {
+            agent {
+                dockerContainer {
+                    image 'maven:3.8.4-openjdk-11-slim'
+                    args '-v $HOME/.m2:/root/.m2'
+                }
+            }
             steps {
                 sh 'mvn --version'
                 sh 'java -version'
-                sh 'docker --version'
+                sh 'mvn clean package -Dmaven.test.failure.ignore=true'
             }
         }
         
@@ -31,12 +32,6 @@ pipeline {
                 sh "docker run --name lcaohoanq-mysql --rm --network dev -v lcaohoanq-mysql-data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_LOGIN_PSW} -e MYSQL_DATABASE=db_example  -d mysql:8.0 "
                 sh 'sleep 20'
                 sh "docker exec -i lcaohoanq-mysql mysql --user=root --password=${MYSQL_ROOT_LOGIN_PSW} < script"
-            }
-        }
-
-        stage('Build with Maven') {
-            steps {
-                sh 'mvn clean package -Dmaven.test.failure.ignore=true'
             }
         }
 
