@@ -12,8 +12,10 @@ pipeline {
         
         stage('Initialize'){
             steps {
-                def dockerHome = tool 'myDocker'
-                env.PATH = "${dockerHome}/bin:${env.PATH}"
+                script {
+                    def dockerHome = tool 'myDocker'
+                    env.PATH = "${dockerHome}/bin:${env.PATH}"
+                }
             }    
         }
 
@@ -40,8 +42,7 @@ pipeline {
             }
         }
 
-        stage('Packaging/Pushing imagae') {
-
+        stage('Packaging/Pushing image') {
             steps {
                 withDockerRegistry(credentialsId: 'dockerhub', url: 'https://index.docker.io/v1/') {
                     sh 'docker build -t lcaohoanq/springboot .'
