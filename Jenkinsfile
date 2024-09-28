@@ -1,27 +1,21 @@
 pipeline {
-    agent any
-
-    tools { 
-        maven 'my-maven' 
+    agent {
+        docker {
+            image 'maven:3.8.4-openjdk-11-slim'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
     }
-    
+
     environment {
         MYSQL_ROOT_LOGIN = credentials('mysql-root-login')
-        DOCKER_CLI_VERSION = '17.04.0-ce'
     }
     
     stages {
-        stage('Install Docker CLI') {
+        stage('Verify Tools') {
             steps {
-                script {
-                    sh """
-                        curl -fsSLO https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_CLI_VERSION}.tgz
-                        tar xzvf docker-${DOCKER_CLI_VERSION}.tgz
-                        mv docker/docker /usr/local/bin
-                        rm -r docker docker-${DOCKER_CLI_VERSION}.tgz
-                        docker --version
-                    """
-                }
+                sh 'mvn --version'
+                sh 'java -version'
+                sh 'docker --version'
             }
         }
         
@@ -42,8 +36,6 @@ pipeline {
 
         stage('Build with Maven') {
             steps {
-                sh 'mvn --version'
-                sh 'java -version'
                 sh 'mvn clean package -Dmaven.test.failure.ignore=true'
             }
         }
